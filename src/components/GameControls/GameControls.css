@@ -4,3 +4,10 @@
   justify-content: center;
   align-items: flex-end;
 }
+
+.Game-over {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff0000;
+  line-height: 52px;
+}

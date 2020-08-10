@@ -13,17 +13,22 @@ function App() {
   };
 
   const mainContextState = {
-    isGameStarted,
-    onStart,
     playerOneName,
-    setPlayerOneName,
     playerTwoName,
-    setPlayerTwoName,
+    setIsGameStarted,
   };
 
   return (
     <MainContext.Provider value={mainContextState}>
-      {isGameStarted ? <Game /> : <Start onStart={onStart} />}
+      {isGameStarted ? (
+        <Game />
+      ) : (
+        <Start
+          onStart={onStart}
+          setPlayerOneName={setPlayerOneName}
+          setPlayerTwoName={setPlayerTwoName}
+        />
+      )}
     </MainContext.Provider>
   );
 }
