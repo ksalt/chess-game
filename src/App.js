@@ -1,15 +1,31 @@
 import React, { useState } from "react";
 import { Start, Game } from "./pages";
+import { MainContext } from "./contexts";
 
 function App() {
-  const [isStarted, setIsStarted] = useState(false);
+  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [playerOneName, setPlayerOneName] = useState("User 1");
+  const [playerTwoName, setPlayerTwoName] = useState("User 2");
 
   const onStart = (e) => {
     e.stopPropagation();
-    setIsStarted(true);
+    setIsGameStarted(true);
   };
 
-  return <>{isStarted ? <Game /> : <Start onStart={onStart} />}</>;
+  const mainContextState = {
+    isGameStarted,
+    onStart,
+    playerOneName,
+    setPlayerOneName,
+    playerTwoName,
+    setPlayerTwoName,
+  };
+
+  return (
+    <MainContext.Provider value={mainContextState}>
+      {isGameStarted ? <Game /> : <Start onStart={onStart} />}
+    </MainContext.Provider>
+  );
 }
 
 export default App;
