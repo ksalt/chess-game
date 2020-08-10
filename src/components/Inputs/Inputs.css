@@ -1,0 +1,17 @@
+.Inputs-label {
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Inputs-text-field {
+  height: 20px;
+  border: none;
+  border: solid 1px;
+  border-radius: 5px;
+}
+
+.Inputs-text-field:focus {
+  outline: none;
+}

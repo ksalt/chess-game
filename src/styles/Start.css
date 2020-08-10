@@ -1,0 +1,26 @@
+.Start-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+}
+
+.Start-content {
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Start-button {
+  display: flex;
+  width: 400px;
+  height: 100px;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
+  border: none;
+  border: solid 1px;
+  border-radius: 5px;
+}
