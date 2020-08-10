@@ -1,26 +1,32 @@
 import React, { useState } from "react";
 import Chess from "chess.js";
-import { Board, GameControls } from "../components";
-
-import { useMainContext } from "../hooks";
+import { GameBoard, GameControls, GameControlBar } from "../components";
 import "../styles/Game.css";
+
 const chess = new Chess();
 
-const Game = (props) => {
-  const { playerOneName, playerTwoName } = useMainContext();
-
+const Game = () => {
   const [fen, setFen] = useState(chess.fen());
+  const [lastMoves, setLastMove] = useState([]);
 
   return (
     <div className="Game-container">
-      <div className="Game-control-bar"></div>
+      <div className="Game-control-bar">
+        <GameControlBar
+          chess={chess}
+          setFen={setFen}
+          lastMoves={lastMoves}
+          setLastMove={setLastMove}
+        />
+      </div>
       <div className="Game-content">
-        <GameControls chess={chess} setFen={setFen} />
-        <div className="Game-board">
-          <h2>{`Player #2: ${playerTwoName}`}</h2>
-          <Board fen={fen} />
-          <h2>{`Player #1: ${playerOneName}`}</h2>
-        </div>
+        <GameControls
+          chess={chess}
+          setFen={setFen}
+          lastMoves={lastMoves}
+          setLastMove={setLastMove}
+        />
+        <GameBoard chess={chess} fen={fen} />
       </div>
     </div>
   );

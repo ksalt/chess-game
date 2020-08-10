@@ -4,17 +4,16 @@
   flex-direction: column;
 }
 
+.Game-control-bar {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  width: 100%;
+}
+
 .Game-content {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-around;
-}
-
-.Game-board {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
 }

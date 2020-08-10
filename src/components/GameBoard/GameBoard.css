@@ -1,0 +1,13 @@
+.Game-board {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.Game-in-check {
+  color: #ff0000;
+  font-weight: bold;
+  height: 20px;
+}

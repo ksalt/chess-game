@@ -1,17 +1,10 @@
 import React from "react";
 import "../styles/Start.css";
-import { StartButton } from "../components";
-import { TextField } from "../components/Inputs";
+import { StartButton, TextField } from "../components";
 import { useMainContext } from "../hooks";
 
-const Start = () => {
-  const {
-    onStart,
-    playerOneName,
-    setPlayerOneName,
-    playerTwoName,
-    setPlayerTwoName,
-  } = useMainContext();
+const Start = ({ onStart, setPlayerOneName, setPlayerTwoName }) => {
+  const { playerOneName, playerTwoName } = useMainContext();
 
   return (
     <div className="Start-container">
