@@ -1,24 +1,37 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
-name: kaniko
+name: My workflow
+description: Test Desc
+foo: test
 on:
   workflow_dispatch:
 jobs:
-  deploy:
+  build:
     steps:
-      - uses: cloudbees-io/checkout@v1
-        name: checkout
-
-      - uses: cloudbees-io/configure-oci-credentials@v1
-        name: Set up Docker Hub registrydd
-        kind: deploy
+      - name: Say hello
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "hello world"
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item
         with:
-          registry: https://index.docker.io/v1/
-          username: cbpautomation
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - uses: cloudbees-io/kaniko/.cloudbees/testing
-        name: Push image to OCI registry
-        with:
-          destination: index.docker.io/cbpautomation/python-hello-world-docker:${{cloudbees.version}}
-          labels: app=cbp
+          content: |
+            - item1
+            - item2    
+  props-and-secrets:
+    steps:
+      - uses: docker://golang:1.20.3-alpine3.17
+        name: Prop check
+        shell: sh
+        run: |
+          echo "Directly from secrets context: secret: "
+          expr substr "${{ secrets.secret1 }}" 1 1
+          expr substr "${{ secrets.secret1 }}" 2 20
+      - uses: docker://golang:1.20.3-alpine3.17
+        name: Env check - properties set on step env
+        shell: sh
+        env:
+          secret1: ${{secrets.secret1}}
+        run: |
+          echo "Made available as env variables too. secret: ''${secret1:0:2} ${secret1:2}'"             
