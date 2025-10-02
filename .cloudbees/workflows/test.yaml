@@ -1,0 +1,31 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: corinne some
+on:
+  workflow_dispatch:
+    inputs:
+      manifest:
+        type: string
+jobs:
+  test:
+    steps:
+      - name: test
+        id: test
+        uses: docker://alpine/curl:latest
+        run: |
+          echo "Manifest isdsdsdsdsdsdsdsdsdsd: $MANIFEST"
+        env:
+          MANIFEST: ${{ inputs.manifest }}
+      - name: Deploy artifactsasasa
+        with:
+          artifact-id: 4b14fc4c-176d-41f5-a050-597de549e3bd
+          target-environment: test-staging
+        uses: cloudbees-io/register-deployed-artifact@v2
+  manual-approval:
+    with:
+      instructions: ""
+      disallowLaunchByUser: false
+      approvers: All users for organization
+      notifyAllEligibleUsers: false
+    timeout-minutes: 4320
+    delegates: cloudbees-io/manual-approval/custom-job.yml@v1
