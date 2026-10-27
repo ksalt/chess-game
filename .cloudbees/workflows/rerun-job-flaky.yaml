@@ -1,0 +1,42 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow 
+name: rerun-job-flaky
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    steps:
+      - name: Run build
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "build running"
+  flaky:
+    needs: build
+    steps:
+      - name: Run flaky
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          echo "flaky on attempt ${{ cloudbees.run_attempt }}"
+          if [ "${{ cloudbees.run_attempt }}" = "1" ]; then
+            echo "failing on the first attempt"
+            exit 1
+          fi
+          for i in $(seq 1 12); do
+            echo "rerun in progress, ${i}0 of 120 seconds"
+            sleep 10
+          done
+          echo "passing on a rerun"
+  deploy:
+    needs: flaky
+    steps:
+      - name: Run deploy
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "deploy running"
+  lint:
+    steps: 
+      - name: Run lint
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "lint running"
