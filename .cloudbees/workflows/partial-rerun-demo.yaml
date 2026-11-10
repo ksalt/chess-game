@@ -1,10 +1,8 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
-name: partial-rerun-demo
-
+name: partial-rerun-demo-test
 on:
   workflow_dispatch:
-
 jobs:
   build:
     outputs:
@@ -33,7 +31,6 @@ jobs:
           version: ${{ steps.version.outputs.version }}
           url: docker.io/example/partial-rerun-demo:${{ steps.version.outputs.version }}
           digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-
   flaky:
     needs: build
     outputs:
@@ -55,8 +52,6 @@ jobs:
             sleep 10
           done
           echo "passing on a rerun"
-
-
   approve-release:
     needs: build
     delegates: cloudbees-io/manual-approval/custom-job.yml@v1
@@ -64,15 +59,15 @@ jobs:
       approvers: ""
       disallowLaunchByUser: false
       instructions: Approve the release of version ${{ needs.build.outputs.version }}.
-
   deploy:
-    needs: [flaky, approve-release]
+    needs:
+      - flaky
+      - approve-release
     steps:
       - name: Run deploy
         uses: docker://alpine:3.20
         shell: sh
         run: echo "deploying version ${{ needs.flaky.outputs.version }} on attempt ${{ cloudbees.run_attempt }}"
-
   lint:
     steps:
       - name: Run lint
