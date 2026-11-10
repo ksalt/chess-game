@@ -1,0 +1,81 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: partial-rerun-demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        name: Compute version
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          VERSION="1.0.${{ cloudbees.run_attempt }}"
+          echo "build running, version $VERSION"
+          printf '%s' "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
+      - name: Publish build evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Build evidence
+            - Version: `${{ steps.version.outputs.version }}`
+            - Produced in run attempt ${{ cloudbees.run_attempt }}
+      - id: register
+        name: Register build artifact
+        uses: cloudbees-io/register-build-artifact@v2
+        with:
+          name: partial-rerun-demo
+          version: ${{ steps.version.outputs.version }}
+          url: docker.io/example/partial-rerun-demo:${{ steps.version.outputs.version }}
+          digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+  flaky:
+    needs: build
+    outputs:
+      version: ${{ steps.flaky.outputs.version }}
+    steps:
+      - id: flaky
+        name: Run flaky
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          echo "flaky on attempt ${{ cloudbees.run_attempt }}, testing version ${{ needs.build.outputs.version }}"
+          printf '%s' "${{ needs.build.outputs.version }}" > "$CLOUDBEES_OUTPUTS/version"
+          if [ "${{ cloudbees.run_attempt }}" = "1" ]; then
+            echo "failing on the first attempt"
+            exit 1
+          fi
+          for i in $(seq 1 12); do
+            echo "rerun in progress, ${i}0 of 120 seconds"
+            sleep 10
+          done
+          echo "passing on a rerun"
+
+
+  approve-release:
+    needs: build
+    delegates: cloudbees-io/manual-approval/custom-job.yml@v1
+    with:
+      approvers: ""
+      disallowLaunchByUser: false
+      instructions: Approve the release of version ${{ needs.build.outputs.version }}.
+
+  deploy:
+    needs: [flaky, approve-release]
+    steps:
+      - name: Run deploy
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "deploying version ${{ needs.flaky.outputs.version }} on attempt ${{ cloudbees.run_attempt }}"
+
+  lint:
+    steps:
+      - name: Run lint
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "lint running"
