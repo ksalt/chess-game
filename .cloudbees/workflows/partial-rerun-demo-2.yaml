@@ -81,7 +81,7 @@ jobs:
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
           artifact-id: ${{ needs.flaky.outputs.artifact-id }}
-          target-environment: demo
+          target-environment: Chess-env
       - name: Publish deploy evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
