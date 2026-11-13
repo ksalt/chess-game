@@ -1,0 +1,94 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: rerun-branches-fail-until-third-attempt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    steps:
+      - name: Prepare
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "setup running (attempt ${{ cloudbees.run_attempt }})"
+
+  # Branch A: the first job fails, so the second one is skipped
+  branch-a-build:
+    needs: setup
+    steps:
+      - name: Build A
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          echo "branch-a-build, attempt ${{ cloudbees.run_attempt }}"
+          if [ "${{ cloudbees.run_attempt }}" -lt 3 ]; then
+            echo "failing until attempt 3"
+            exit 1
+          fi
+  branch-a-test:
+    needs: branch-a-build
+    steps:
+      - name: Test A
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "branch-a-test running"
+
+  # Branch B: the first job passes, the second one fails
+  branch-b-build:
+    needs: setup
+    steps:
+      - name: Build B
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "branch-b-build running"
+  branch-b-test:
+    needs: branch-b-build
+    steps:
+      - name: Test B
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          echo "branch-b-test, attempt ${{ cloudbees.run_attempt }}"
+          if [ "${{ cloudbees.run_attempt }}" -lt 3 ]; then
+            echo "failing until attempt 3"
+            exit 1
+          fi
+
+  # Branch C: always passes, so a failed-jobs rerun preserves it
+  branch-c-build:
+    needs: setup
+    steps:
+      - name: Build C
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "branch-c-build running"
+  branch-c-test:
+    needs: branch-c-build
+    steps:
+      - name: Test C
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "branch-c-test running"
+
+  # Independent job outside the branches that also fails
+  lint:
+    steps:
+      - name: Lint
+        uses: docker://alpine:3.20
+        shell: sh
+        run: |
+          echo "lint, attempt ${{ cloudbees.run_attempt }}"
+          if [ "${{ cloudbees.run_attempt }}" -lt 3 ]; then
+            echo "failing until attempt 3"
+            exit 1
+          fi
+
+  # Joins the branches; skipped until branches A and B pass
+  deploy:
+    needs: [branch-a-test, branch-b-test, branch-c-test]
+    steps:
+      - name: Deploy
+        uses: docker://alpine:3.20
+        shell: sh
+        run: echo "deploy running"
