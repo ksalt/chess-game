@@ -1,0 +1,73 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: Staged Workflow with Flaky Job
+on:
+  workflow_dispatch:
+metadata:
+  stages/v1alpha1:
+    - name: Stage 1
+      jobs:
+        - stage-1-job
+    - name: Stage 2
+      jobs:
+        - flaky-job
+    - name: Stage 3
+      jobs:
+        - stage-3-job
+jobs:
+  stage-1-job:
+    steps:
+      - name: Stage 1 Setup
+        uses: docker://alpine:3.18
+        run: |
+          echo "=== Stage 1: Initial Setup ==="
+          echo "This stage always succeeds"
+          echo "Preparing environment..."
+          sleep 2
+          echo "Stage 1 completed successfully!"
+  flaky-job:
+    needs: stage-1-job
+    steps:
+      - name: Checkout
+        uses: cloudbees-io/checkout@v1
+      - name: Flaky Job - Fails First 2 Runs
+        uses: docker://alpine:3.18
+        run: |
+          echo "=== Stage 2: Flaky Job ==="
+
+          # Create a persistent file to track run attempts
+          ATTEMPT_FILE="run_attempts.txt"
+
+          # Initialize or read the attempt counter
+          if [ ! -f "$ATTEMPT_FILE" ]; then
+            echo "1" > "$ATTEMPT_FILE"
+            ATTEMPT=1
+          else
+            ATTEMPT=$(cat "$ATTEMPT_FILE")
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "$ATTEMPT" > "$ATTEMPT_FILE"
+          fi
+
+          echo "Current run attempt: $ATTEMPT"
+
+          # Fail on attempts 1 and 2, succeed on 3 and beyond
+          if [ "$ATTEMPT" -lt 3 ]; then
+            echo "❌ Attempt $ATTEMPT: Simulating failure..."
+            echo "This job will fail on the first 2 runs"
+            exit 1
+          else
+            echo "✅ Attempt $ATTEMPT: Success!"
+            echo "This is run $ATTEMPT - job now succeeds"
+            exit 0
+          fi
+  stage-3-job:
+    needs: flaky-job
+    steps:
+      - name: Stage 3 Finalization
+        uses: docker://alpine:3.18
+        run: |
+          echo "=== Stage 3: Finalization ==="
+          echo "This stage runs after Stage 2 succeeds"
+          echo "Performing final checks..."
+          sleep 2
+          echo "All stages completed successfully!"
