@@ -27,12 +27,11 @@ jobs:
           echo "Stage 1 completed successfully!"
   flaky-job:
     needs: stage-1-job
+    environment: Chess-env
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
-      - name: Flaky Job - Fails First 2 Runs
-        uses: docker://alpine:3.18
-        run: |
+      - run: |
           echo "=== Stage 2: Flaky Job ==="
 
           # Create a persistent file to track run attempts
@@ -60,6 +59,8 @@ jobs:
             echo "This is run $ATTEMPT - job now succeeds"
             exit 0
           fi
+        uses: docker://alpine:3.18
+        name: Flaky Job - Fails First 2 Runs
   stage-3-job:
     needs: flaky-job
     steps:
