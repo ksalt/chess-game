@@ -29,24 +29,10 @@ jobs:
     needs: stage-1-job
     environment: Chess-env
     steps:
-      - name: Checkout
-        uses: cloudbees-io/checkout@v1
       - run: |
           echo "=== Stage 2: Flaky Job ==="
 
-          # Create a persistent file to track run attempts
-          ATTEMPT_FILE="run_attempts.txt"
-
-          # Initialize or read the attempt counter
-          if [ ! -f "$ATTEMPT_FILE" ]; then
-            echo "1" > "$ATTEMPT_FILE"
-            ATTEMPT=1
-          else
-            ATTEMPT=$(cat "$ATTEMPT_FILE")
-            ATTEMPT=$((ATTEMPT + 1))
-            echo "$ATTEMPT" > "$ATTEMPT_FILE"
-          fi
-
+          ATTEMPT="${{ cloudbees.run_attempt }}"
           echo "Current run attempt: $ATTEMPT"
 
           # Fail on attempts 1 and 2, succeed on 3 and beyond
